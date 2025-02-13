@@ -9,13 +9,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\Console\Input\Input;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\SendMail;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
-
-
 
 class AuthController extends Controller
 {
@@ -23,7 +16,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:50',
+            'name' => 'required|max:50',
             'email' => 'required|email|unique:users',
             'phone' => 'required',
             'password' => 'required|same:confirm_password|min:8',
@@ -42,14 +35,10 @@ class AuthController extends Controller
             'phone'=>$request->phone,
             'role'=>1,
             'password'=>Hash::make($request->password),
-            'remember_token'=>Str::random(40),
         ]);
-        
-        $subjec = "verify email";
-        $body = "تحقق من البريد الإلكتروني للتفعيل";
-        Mail::to($request->email,)->send(new SendMail($user,$subjec,$body));
+
         return response()->json([
-            'message' => 'تحقق من البريد الإلكتروني لتفعيل حسابك',
+            'message' => 'تم التسجيل بنجاح',
             'data' => $user
         ],200);
     }
@@ -61,12 +50,6 @@ class AuthController extends Controller
             'password' => 'required',
 
         ]);
-
-        $user = User::where('email','=',$request->email)->first();
-
-     
-  
-      
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'حدث خطأ',
@@ -82,13 +65,7 @@ class AuthController extends Controller
           );
 
         if(Auth::attempt($userdata)){
-            if($user->email_verified_at==null){
-                return response()->json([
-                    'message' => 'تحقق من تفعيل الايميل',
-                ],422);}
-
             $token = $user->createToken('auth-token')->plainTextToken;
-
             return response()->json([
                 'message' => 'تم الدخول بنجاح',
                 'token'=>$token,
@@ -100,27 +77,4 @@ class AuthController extends Controller
             ],400);
         }
     }
-
-    
-    public function verify(string $token){
-   
-        $user = User::where('remember_token','=',$token)->first();
-
-      if(!empty($user)){
-        $user->email_verified_at = date('Y-m-d H:i:s');
-        $user->save();
-        return response()->json([
-            'message' => 'تم تفعيل الحساب بنجاح',
-            'token' =>$token
-        ],200);
-      }else{
-        return response()->json([
-            'message' => 'لايوجد',
-        ],404);
-      }
-        
-    }
-
-
-
 }

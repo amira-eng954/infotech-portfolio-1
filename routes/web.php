@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\TestController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,9 +13,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/* This is a comment by Mohammed Helmy */
-
 Route::get('/', function () {
     return view('welcome');
 });
-
